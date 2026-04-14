@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthPotion AI — Your Intelligent Health Companion</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Raleway:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --emerald: #00ffaa;
+      --emerald-dim: #00c87a;
+      --deep: #020b10;
+      --panel: #050f18;
+      --glass: rgba(0, 255, 170, 0.05);
+      --glass-bd: rgba(0, 255, 170, 0.15);
+      --text: #d4f5e9;
+      --muted: #5a9e80;
+      --danger: #ff4f7b;
+      --gold: #ffd166;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--deep);
+      color: var(--text);
+      font-family: 'Raleway', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── animated bg canvas ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      background-size: 150px 150px;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* ── everything sits above canvas ── */
+    .layer {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ════════════ NAV ════════════ */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      backdrop-filter: blur(12px);
+      background: rgba(2, 11, 16, 0.7);
+      border-bottom: 1px solid var(--glass-bd);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--emerald), #00c8ff);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 18px rgba(0, 255, 170, .45);
+    }
+
+    .logo-text {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--emerald), #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text span {
+      color: var(--gold);
+      -webkit-text-fill-color: var(--gold);
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav ul a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .85rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 500;
+      transition: color .25s;
+    }
+
+    nav ul a:hover {
+      color: var(--emerald);
+    }
+
+    .nav-cta {
+      padding: .55rem 1.4rem;
+      border: 1px solid var(--emerald);
+      border-radius: 100px;
+      color: var(--emerald) !important;
+      font-weight: 600 !important;
+      transition: background .25s, box-shadow .25s !important;
+    }
+
+    .nav-cta:hover {
+      background: var(--glass);
+      box-shadow: 0 0 18px rgba(0, 255, 170, .3);
+    }
+
+    /* ════════════ HERO ════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 7rem 2rem 4rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .4rem 1.1rem;
+      border: 1px solid var(--glass-bd);
+      border-radius: 100px;
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      background: var(--glass);
+      margin-bottom: 2.5rem;
+      animation: fadeUp .8s ease both;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulseDot 1.5s infinite;
+    }
+
+    @keyframes pulseDot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .5;
+        transform: scale(.7);
+      }
+    }
+
+    h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(2.4rem, 7vw, 5.5rem);
+      line-height: 1.1;
+      font-weight: 900;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .9s .1s ease both;
+    }
+
+    h1 .line1 {
+      display: block;
+      background: linear-gradient(90deg, #fff 30%, var(--emerald));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h1 .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--emerald), #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: .6em;
+      letter-spacing: .06em;
+    }
+
+    .hero-sub {
+      max-width: 580px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      margin-bottom: 3.5rem;
+      animation: fadeUp 1s .2s ease both;
+    }
+
+    /* ════════════ OPTION CARDS ════════════ */
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.8rem;
+      width: 100%;
+      max-width: 860px;
+      animation: fadeUp 1s .35s ease both;
+    }
+
+    @media (max-width: 640px) {
+      .options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .option-card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--glass-bd);
+      border-radius: 24px;
+      padding: 3rem 2.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+      cursor: pointer;
+      transition: transform .3s, box-shadow .3s, border-color .3s;
+      overflow: hidden;
+      text-decoration: none;
+    }
+
+    .option-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(0, 255, 170, .08) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity .35s;
+    }
+
+    .option-card:hover::before {
+      opacity: 1;
+    }
+
+    .option-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(0, 255, 170, .15), 0 0 0 1px var(--emerald);
+      border-color: var(--emerald);
+    }
+
+    .option-card.alt:hover {
+      box-shadow: 0 20px 50px rgba(0, 212, 255, .15), 0 0 0 1px #00d4ff;
+      border-color: #00d4ff;
+    }
+
+    .option-card.alt::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(0, 212, 255, .08) 0%, transparent 70%);
+    }
+
+    /* icon ring */
+    .card-icon-ring {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      position: relative;
+    }
+
+    .option-card:not(.alt) .card-icon-ring {
+      background: radial-gradient(circle, rgba(0, 255, 170, .18), rgba(0, 255, 170, .04));
+      box-shadow: 0 0 0 2px rgba(0, 255, 170, .25), 0 0 30px rgba(0, 255, 170, .2);
+    }
+
+    .option-card.alt .card-icon-ring {
+      background: radial-gradient(circle, rgba(0, 212, 255, .18), rgba(0, 212, 255, .04));
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, .25), 0 0 30px rgba(0, 212, 255, .2);
+    }
+
+    /* rotating dashed orbit */
+    .card-icon-ring::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px dashed rgba(0, 255, 170, .3);
+      animation: spin 8s linear infinite;
+    }
+
+    .option-card.alt .card-icon-ring::after {
+      border-color: rgba(0, 212, 255, .3);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .card-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .card-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    .card-btn {
+      margin-top: .5rem;
+      padding: .7rem 2rem;
+      border-radius: 100px;
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      transition: filter .25s, transform .2s;
+    }
+
+    .card-btn:hover {
+      filter: brightness(1.15);
+      transform: scale(1.04);
+    }
+
+    .option-card:not(.alt) .card-btn {
+      background: linear-gradient(135deg, var(--emerald), var(--emerald-dim));
+      color: #020b10;
+    }
+
+    .option-card.alt .card-btn {
+      background: linear-gradient(135deg, #00d4ff, #0094cc);
+      color: #020b10;
+    }
+
+    /* hidden file input */
+    #fileInput {
+      display: none;
+    }
+
+    /* ── upload preview ── */
+    .upload-feedback {
+      display: none;
+      margin-top: .6rem;
+      font-size: .8rem;
+      color: var(--emerald);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ════════════ FEATURES STRIP ════════════ */
+    .features {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 1.5rem 2rem 4rem;
+      animation: fadeUp 1s .5s ease both;
+    }
+
+    .feat-chip {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .55rem 1.2rem;
+      border: 1px solid var(--glass-bd);
+      border-radius: 100px;
+      font-size: .8rem;
+      color: var(--muted);
+      background: var(--glass);
+      letter-spacing: .06em;
+    }
+
+    .feat-chip .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ════════════ HOW IT WORKS ════════════ */
+    .how {
+      padding: 5rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      margin-bottom: .8rem;
+    }
+
+    .section-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      text-align: center;
+      color: #fff;
+      margin-bottom: 3.5rem;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+
+    .step {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      background: var(--panel);
+      border: 1px solid var(--glass-bd);
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--emerald), #00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: .8rem;
+    }
+
+    .step h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: .5rem;
+    }
+
+    .step p {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ════════════ FOOTER ════════════ */
+    footer {
+      text-align: center;
+      padding: 2.5rem;
+      border-top: 1px solid var(--glass-bd);
+      font-size: .8rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    footer a {
+      color: var(--emerald);
+      text-decoration: none;
+    }
+
+    /* ════════════ ANIMATIONS ════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ════════════ SCROLLBAR ════════════ */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--deep);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--glass-bd);
+      border-radius: 99px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── animated particle canvas ── -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ════════════ NAV ════════════ -->
+  <nav class="layer">
+    <a href="#" class="logo">
+      <div class="logo-icon">⚗️</div>
+      <span class="logo-text">Health<span>Potion</span> AI</span>
+    </a>
+    <ul>
+      <li><a href="#how">How it Works</a></li>
+      <li><a href="#">Features</a></li>
+      <li><a href="#" class="nav-cta">Get Started</a></li>
+    </ul>
+  </nav>
+
+  <!-- ════════════ HERO ════════════ -->
+  <main class="layer">
+    <section class="hero">
+
+      <div class="hero-badge">
+        <div class="pulse-dot"></div>
+        AI-Powered Health Intelligence
+      </div>
+
+      <h1>
+        <span class="line1">HealthPotion AI</span>
+        <span class="line2">Healing Through Intelligence</span>
+      </h1>
+
+      <p class="hero-sub">
+        Harness the power of advanced AI to analyze your health — from medical images to symptoms.
+        Get instant, intelligent insights brewed just for you.
+      </p>
+
+      <!-- ── TWO OPTION CARDS ── -->
+      <form action="/predict-image" method="POST" enctype="multipart/form-data">
+
+        <div class="options">
+
+          <!-- Hidden File Input -->
+          <input type="file" id="fileInput" name="image" accept="image/*" style="display: none;"
+            onchange="handleFileSelect(event)">
+
+          <!-- CARD 1 — Image Upload -->
+          <div class="option-card" onclick="document.getElementById('fileInput').click()">
+            <div class="card-icon-ring">🩻</div>
+            <h2 class="card-title">Analyze an Image</h2>
+            <p class="card-desc">
+              Upload an X-ray, skin photo, medical scan, or any health-related image.
+              Our AI examines it and delivers detailed insights instantly.
+            </p>
+
+            <!-- Button will submit AFTER file is selected -->
+            <button type="submit" class="card-btn" id="uploadBtn">
+              Upload Image
+            </button>
+
+            <p class="upload-feedback" id="uploadFeedback" style="display: none;">
+              ✓ Image selected
+            </p>
+          </div>
+
+          <!-- CARD 2 — Text Input -->
+          <a href="text-analysis.html" class="option-card alt" style="color: inherit;">
+            <div class="card-icon-ring">💬</div>
+            <h2 class="card-title">Describe Symptoms</h2>
+            <p class="card-desc">
+              Type your symptoms, medical questions, or health concerns in plain language.
+              HealthPotion AI listens, understands, and responds like a brilliant companion.
+            </p>
+            <button class="card-btn">Start Writing</button>
+          </a>
+
+        </div>
+      </form>
+
+      <!-- JS for handling file selection -->
+      <script>
+        function handleFileSelect(event) {
+          const file = event.target.files[0];
+
+          if (file) {
+            // Show feedback
+            document.getElementById("uploadFeedback").style.display = "block";
+
+            // Enable button
+            document.getElementById("uploadBtn").disabled = false;
+          }
+        }
+      </script>
+
+
+      <!-- chips -->
+      <div class="features">
+        <div class="feat-chip"><span class="dot" style="background:#00ffaa;"></span> Instant Analysis</div>
+        <div class="feat-chip"><span class="dot" style="background:#00d4ff;"></span> 150+ Conditions Covered</div>
+        <div class="feat-chip"><span class="dot" style="background:var(--gold);"></span> Private & Encrypted</div>
+        <div class="feat-chip"><span class="dot" style="background:var(--danger);"></span> 24 / 7 Availability</div>
+        <div class="feat-chip"><span class="dot" style="background:#c77dff;"></span> Evidence-Based AI</div>
+      </div>
+
+    </section>
+
+    <!-- ════════════ HOW IT WORKS ════════════ -->
+    <section class="how" id="how">
+      <p class="section-label">The Process</p>
+      <h2 class="section-title">How HealthPotion AI Works</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Choose Your Input</h3>
+          <p>Select whether you want to upload a medical image or describe your symptoms in text.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>AI Processes Data</h3>
+          <p>Our state-of-the-art AI engine analyzes your input against millions of medical data points.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Receive Insights</h3>
+          <p>Get a clear, structured health report with potential findings and recommended next steps.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <h3>Consult & Act</h3>
+          <p>Use your insights to have more informed conversations with your healthcare provider.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════════ FOOTER ════════════ -->
+  <footer class="layer">
+    <p>© 2025 <a href="#">HealthPotion AI</a> — For informational purposes only. Always consult a licensed physician.
+    </p>
+  </footer>
+
+  <!-- ════════════ CANVAS ANIMATION ════════════ -->
+  <script>
+    /* ── Particle field ── */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() { this.reset(true); }
+      reset(rand) {
+        this.x = Math.random() * W;
+        this.y = rand ? Math.random() * H : H + 10;
+        this.r = Math.random() * 1.8 + .3;
+        this.vy = -(Math.random() * .35 + .1);
+        this.vx = (Math.random() - .5) * .15;
+        this.alpha = Math.random() * .5 + .1;
+        this.col = Math.random() > .5 ? '0,255,170' : '0,212,255';
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.y < -10) this.reset(false);
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.col},${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+    /* hexagonal grid bg */
+    function drawHexGrid() {
+      const size = 38, w = size * Math.sqrt(3), h = size * 2;
+      ctx.strokeStyle = 'rgba(0,255,170,0.03)';
+      ctx.lineWidth = 1;
+      for (let row = -1; row < H / (h * .75) + 2; row++) {
+        for (let col = -1; col < W / w + 2; col++) {
+          const cx = col * w + (row % 2 ? w / 2 : 0);
+          const cy = row * h * .75;
+          hexPath(cx, cy, size);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function hexPath(cx, cy, r) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const ang = Math.PI / 180 * (60 * i - 30);
+        const px = cx + r * Math.cos(ang);
+        const py = cy + r * Math.sin(ang);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+
+    function loop() {
+      ctx.clearRect(0, 0, W, H);
+      drawHexGrid();
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    /* ── File select feedback ── */
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const fb = document.getElementById('uploadFeedback');
+        fb.textContent = `✓ ${input.files[0].name} selected`;
+        fb.style.display = 'block';
+        // In a real app: redirect to analysis page with file
+      }
+    }
+  </script>
+
+</body>
+
+</html>
