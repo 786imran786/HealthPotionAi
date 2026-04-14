@@ -18,6 +18,9 @@ app = Flask(__name__)
 CORS(app)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB upload limit
 
+# Ensure upload directory exists
+os.makedirs(os.path.join('static', 'uploads'), exist_ok=True)
+
 # ─── Gemini AI Configuration ────────────────────────────────────────────────
 # Set your API key as an environment variable: GEMINI_API_KEY
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
